@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الدفع - سيرف ستور</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Stripe -->
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    :root {
+      --bg: #0a0b14;
+      --card: #161825;
+      --accent: #4f8fff;
+      --gradient: linear-gradient(135deg, #4f8fff, #7c5cfc);
+      --border: rgba(255,255,255,0.06);
+      --success: #2ecc71;
+      --danger: #ff6b6b;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: var(--bg);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 1rem;
+      direction: rtl;
+    }
+    .container {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .order-info {
+      background: rgba(79,143,255,0.05);
+      border: 1px solid rgba(79,143,255,0.2);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.8rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    .info-label {
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .info-value {
+      font-weight: 700;
+      color: white;
+    }
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .tab-btn {
+      padding: 1rem;
+      border: 2px solid var(--border);
+      background: transparent;
+      color: var(--accent);
+      border-radius: 12px;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+    .tab-btn:hover {
+      border-color: var(--accent);
+      background: rgba(79,143,255,0.1);
+    }
+    .tab-btn.active {
+      background: var(--gradient);
+      border-color: transparent;
+      color: white;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.9rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: white;
+      font-family: 'Cairo', sans-serif;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(79,143,255,0.05);
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    #card-element {
+      padding: 0.9rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      margin-bottom: 1rem;
+    }
+    .stripe-error {
+      color: #ff6b6b;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 1rem;
+      border: none;
+      border-radius: 12px;
+      background: var(--gradient);
+      color: white;
+      font-family: 'Cairo', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 1rem;
+    }
+    .submit-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(79,143,255,0.3);
+    }
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .loading {
+      display: none;
+      text-align: center;
+      margin: 1rem 0;
+    }
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(79,143,255,0.2);
+      border-radius: 50%;
+      border-top-color: var(--accent);
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .message {
+      padding: 1rem;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      text-align: center;
+      display: none;
+    }
+    .message.success {
+      background: rgba(46,204,113,0.1);
+      color: #2ecc71;
+      border: 1px solid rgba(46,204,113,0.2);
+    }
+    .message.error {
+      background: rgba(255,107,107,0.1);
+      color: #ff6b6b;
+      border: 1px solid rgba(255,107,107,0.2);
+    }
+    .message.active {
+      display: block;
+    }
+    .security-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      color: #9ca3af;
+      font-size: 0.85rem;
+      margin-top: 1rem;
+      text-align: center;
+    }
+    @media (max-width: 600px) {
+      .row {
+        grid-template-columns: 1fr;
+      }
+      .tabs {
+        grid-template-columns: 1fr;
+      }
+      .container {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+   <body>
+   <div class="container">
+     <h2>💳 إتمام الدفع</h2>
+
+     {% if payment_mode == 'demo' %}
+     <div style="
+       background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+       color: white;
+       padding: 1rem 1.5rem;
+       border-radius: 12px;
+       margin-bottom: 1.5rem;
+       font-weight: 600;
+       text-align: center;
+       border: 2px solid rgba(255,255,255,0.2);
+       animation: pulse 2s infinite;
+     ">
+       ⚠️ <strong>وضع التجربة</strong> — لا توجد عمليةدفع حقيقية. البيانات للتجربة فقط.
+     </div>
+     <style>
+         @keyframes pulse {
+           0% { opacity: 1; }
+           50% { opacity: 0.85; }
+           100% { opacity: 1; }
+         }
+       </style>
+     {% endif %}
+
+    <div class="order-info">
+      <div class="info-row">
+        <span class="info-label">الباقة:</span>
+        <span class="info-value">{{ order.plan_name }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">السعر:</span>
+        <span class="info-value">${{ order.plan_price }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">رقم الشيك:</span>
+        <span class="info-value">{{ order.check_id }}</span>
+      </div>
+    </div>
+
+    <div class="message" id="message"></div>
+
+    <!-- Payment Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('card', event)">💳 بطاقة</button>
+      <button class="tab-btn" onclick="switchTab('stripe', event)">⚡ Stripe</button>
+    </div>
+
+     <!-- Card Payment Tab -->
+     <div class="tab-content active" id="card">
+       {% if payment_mode == 'demo' %}
+       <div style="
+         background: rgba(79,143,255,0.1);
+         border: 1px solid rgba(79,143,255,0.3);
+         border-radius: 12px;
+         padding: 1rem;
+         margin-bottom: 1rem;
+         font-size: 0.9rem;
+         line-height: 1.6;
+       ">
+         <strong>🔢 بطاقات اختبارية (تعمل في وضع التجربة):</strong><br>
+         • <strong>ناجحة:</strong> <code>4242 4242 4242 4242</code> — أي تاريخ مستقبلي، أي CVV<br>
+         • <strong>مرفوضة:</strong> <code>4000 0566 5566 5556</code> — تحاكي الرفض<br>
+         • <strong>مرفوضة:</strong> أي رقم ينتهي بـ <code>0000</code>
+       </div>
+       {% endif %}
+       <p style="color: #9ca3af; margin-bottom: 1rem; font-size: 0.85rem;">
+         {% if payment_mode == 'demo' %}
+         🔒 هذا نموذج دفع تجريبي — البيانات غير حقيقية
+         {% else %}
+         🔒payment form - secure encrypted connection
+         {% endif %}
+       </p>
+      <form id="cardForm">
+        <div class="form-group">
+          <label>اسم حامل البطاقة</label>
+          <input id="cardholderName" type="text" placeholder="أحمد محمد" required>
+        </div>
+        <div class="form-group">
+          <label>رقم البطاقة</label>
+          <input id="cardNumber" type="text" placeholder="1234 5678 9012 3456" maxlength="19" required>
+        </div>
+        <div class="row">
+          <div class="form-group">
+            <label>الصلاحية</label>
+            <input id="expiry" type="text" placeholder="MM/YY" maxlength="5" required>
+          </div>
+          <div class="form-group">
+            <label>CVV</label>
+            <input id="cvv" type="text" placeholder="123" maxlength="3" required>
+          </div>
+        </div>
+        <div class="loading" id="cardLoading">
+          <div class="spinner"></div>
+        </div>
+        <button type="submit" class="submit-btn">💳 ادفع الآن (${{ order.plan_price }})</button>
+      </form>
+      <div class="security-badge">🔒 آمن وموثوق</div>
+    </div>
+
+     <!-- Stripe Payment Tab -->
+     <div class="tab-content" id="stripe">
+       {% if payment_mode == 'demo' %}
+       <div style="
+         background: rgba(79,143,255,0.1);
+         border: 1px solid rgba(79,143,255,0.3);
+         border-radius: 12px;
+         padding: 1rem;
+         margin-bottom: 1rem;
+         font-size: 0.9rem;
+         line-height: 1.6;
+       ">
+         <strong>⚠️ Stripe Test Mode</strong><br>
+         Test card: <code>4242 4242 4242 4242</code><br>
+         Any future expiry, any CVV. No real charges.
+       </div>
+       {% endif %}
+       <p style="color: #9ca3af; margin-bottom: 1rem; font-size: 0.85rem;">
+         {% if payment_mode == 'demo' %}
+         🔒 الدفع عبر Stripe (وضع اختبارى — لا يوجد خصم حقيقى)
+         {% else %}
+         🔒 الدفع عبر Stripe — آمن وموثوق
+         {% endif %}
+       </p>
+      <form id="stripeForm">
+        <div id="card-element"></div>
+        <div class="stripe-error" id="card-errors"></div>
+        <div class="form-group">
+          <label>البريد الإلكتروني</label>
+          <input type="email" id="email" placeholder="example@email.com" required>
+        </div>
+        <div class="loading" id="stripeLoading">
+          <div class="spinner"></div>
+        </div>
+        <button type="submit" class="submit-btn">⚡ ادفع عبر Stripe (${{ order.plan_price }})</button>
+      </form>
+      <div class="security-badge">🔒 آمن وموثوق</div>
+    </div>
+  </div>
+
+   <script>
+     const orderId = {{order.id}};
+     const orderPrice = {{ order.plan_price }};
+     const paymentMode = '{{ payment_mode }}';  // 'demo' or 'live'
+
+     // Format card number with spaces (4-4-4-4)
+     document.getElementById('cardNumber').addEventListener('input', function (e) {
+       let value = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+       let formattedValue = '';
+       for (let i = 0; i < value.length; i++) {
+         if (i > 0 && i % 4 === 0) formattedValue += ' ';
+         formattedValue += value[i];
+       }
+       e.target.value = formattedValue;
+     });
+
+     // Format expiry date (MM/YY)
+     document.getElementById('expiry').addEventListener('input', function (e) {
+       let value = e.target.value.replace(/\D/g, '');
+       if (value.length >= 2) {
+         value = value.substring(0, 2) + '/' + value.substring(2, 4);
+       }
+       e.target.value = value;
+     });
+
+     // CVV numbers only
+     document.getElementById('cvv').addEventListener('input', function (e) {
+       e.target.value = e.target.value.replace(/\D/g, '');
+     });
+
+     function switchTab(tabName, event) {
+       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+       
+       document.getElementById(tabName).classList.add('active');
+       if (event && event.target) {
+         event.target.classList.add('active');
+       }
+     }
+
+     function showMessage(text, type) {
+       const msg = document.getElementById('message');
+       msg.textContent = text;
+       msg.className = 'message active ' + type;
+     }
+
+     // Demo mode info
+     if (paymentMode === 'demo') {
+       console.log('⚠️ PAYMENT DEMO MODE ACTIVE - No real charges will be made');
+     }
+
+     // ========== Card Payment ==========
+     document.getElementById('cardForm').addEventListener('submit', async (e) => {
+       e.preventDefault();
+       const loading = document.getElementById('cardLoading');
+       loading.style.display = 'block';
+
+       const cardData = {
+         cardholder_name: document.getElementById('cardholderName').value,
+         card_number: document.getElementById('cardNumber').value,
+         expiry: document.getElementById('expiry').value,
+         cvv: document.getElementById('cvv').value
+       };
+
+       try {
+         // التحقق من صحة البطاقة أولاً
+         const validateRes = await fetch('/api/payment/card/validate', {
+           method: 'POST',
+           headers: { 'Content-Type': 'application/json' },
+           body: JSON.stringify(cardData)
+         });
+         const validateData = await validateRes.json();
+
+         if (!validateData.success) {
+           showMessage('❌ ' + validateData.errors.join('<br>'), 'error');
+           loading.style.display = 'none';
+           return;
+         }
+
+         // إذا كانت البطاقة صحيحة، معالجة الدفع
+         const payRes = await fetch(`/api/payment/${orderId}/process`, {
+           method: 'POST',
+           headers: { 'Content-Type': 'application/json' },
+           body: JSON.stringify(cardData)
+         });
+         const payData = await payRes.json();
+
+         if (payData.success) {
+           const msg = payData.demo_mode 
+             ? '✅ تم الدفع بنجاح (وضع التجربة)! جاري إعادة التوجيه...'
+             : '✅ تم الدفع بنجاح! جاري إعادة التوجيه...';
+           showMessage(msg, 'success');
+           setTimeout(() => window.location.href = `/payment/${orderId}/success`, 1500);
+         } else {
+           showMessage('❌ ' + (payData.message || payData.errors.join('<br>')), 'error');
+         }
+       } catch (err) {
+         showMessage('❌ خطأ في الاتصال', 'error');
+       } finally {
+         loading.style.display = 'none';
+       }
+     });
+
+    // ========== Stripe Payment ==========
+    const stripe = Stripe('{{ stripe_key }}');
+    const elements = stripe.elements();
+    const cardElement = elements.create('card');
+    cardElement.mount('#card-element');
+
+    cardElement.addEventListener('change', (event) => {
+      const displayError = document.getElementById('card-errors');
+      if (event.error) {
+        displayError.textContent = event.error.message;
+        displayError.style.display = 'block';
+      } else {
+        displayError.textContent = '';
+        displayError.style.display = 'none';
+      }
+    });
+
+     document.getElementById('stripeForm').addEventListener('submit', async (e) => {
+       e.preventDefault();
+       const loading = document.getElementById('stripeLoading');
+       loading.style.display = 'block';
+
+       // If in demo mode, skip Stripe and simulate directly
+       if (paymentMode === 'demo') {
+         showMessage(' Stripe في وضع التجربة - يرجى استخدام بطاقة ائتمانouz另请参阅即可 (please see card tab for test cards)', 'error');
+         loading.style.display = 'none';
+         return;
+       }
+
+       try {
+         const intentRes = await fetch('/api/payment/stripe/create-intent', {
+           method: 'POST',
+           headers: { 'Content-Type': 'application/json' },
+           body: JSON.stringify({ order_id: orderId })
+         });
+         const intentData = await intentRes.json();
+
+         if (!intentData.success) {
+           showMessage('❌ خطأ في إنشاء معاملة Stripe: ' + (intentData.error || 'unknown error'), 'error');
+           loading.style.display = 'none';
+           return;
+         }
+
+         const result = await stripe.confirmCardPayment(intentData.clientSecret, {
+           payment_method: {
+             card: cardElement,
+             billing_details: { email: document.getElementById('email').value }
+           }
+         });
+
+         if (result.paymentIntent.status === 'succeeded') {
+           await fetch('/api/payment/stripe/confirm', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({
+               order_id: orderId,
+               intent_id: result.paymentIntent.id
+             })
+           });
+
+           showMessage('✓ تم الدفع بنجاح!', 'success');
+           setTimeout(() => window.location.href = `/payment/${orderId}/success`, 1500);
+         } else {
+           showMessage('✗ فشل الدفع', 'error');
+         }
+       } catch (err) {
+         showMessage('✗ خطأ: ' + err.message, 'error');
+       } finally {
+         loading.style.display = 'none';
+       }
+     });
+  </script>
+</body>
+</html>

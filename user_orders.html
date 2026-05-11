@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>طلباتي - سيرف ستور</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0b14;
+      --card: #161825;
+      --accent: #4f8fff;
+      --gradient: linear-gradient(135deg, #4f8fff, #7c5cfc);
+      --border: rgba(255,255,255,0.06);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: var(--bg);
+      color: white;
+      direction: rtl;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 3rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    h1 {
+      font-size: 2rem;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .logout-btn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      transition: 0.3s;
+    }
+    .logout-btn:hover {
+      background: #c0392b;
+    }
+    .orders-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    .order-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      transition: 0.3s;
+    }
+    .order-card:hover {
+      border-color: rgba(79,143,255,0.3);
+      transform: translateY(-4px);
+    }
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .order-id {
+      font-size: 0.9rem;
+      color: #9ca3af;
+      font-weight: 600;
+    }
+    .status-badge {
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+    .status-pending {
+      background: rgba(243,156,18,0.2);
+      color: #f39c12;
+    }
+    .status-paid {
+      background: rgba(46,204,113,0.2);
+      color: #2ecc71;
+    }
+    .order-plan {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: white;
+    }
+    .order-details {
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 0.5rem 0;
+      color: #9ca3af;
+    }
+    .detail-value {
+      color: white;
+      font-weight: 600;
+    }
+    .order-price {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--accent);
+      margin-top: 1rem;
+    }
+    .action-btn {
+      width: 100%;
+      padding: 0.7rem;
+      border: none;
+      border-radius: 10px;
+      background: var(--gradient);
+      color: white;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 600;
+      margin-top: 1rem;
+      transition: 0.3s;
+    }
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(79,143,255,0.3);
+    }
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+    }
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    .empty-text {
+      color: #9ca3af;
+      margin-bottom: 1.5rem;
+    }
+    .home-btn {
+      display: inline-block;
+      padding: 0.7rem 2rem;
+      background: var(--gradient);
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+      transition: 0.3s;
+    }
+    .home-btn:hover {
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📦 طلباتي</h1>
+      <div>
+        <a href="/" style="color: var(--accent); text-decoration: none; margin-right: 1rem;">الرئيسية</a>
+        <button class="logout-btn" onclick="logout()">🚪 تسجيل الخروج</button>
+      </div>
+    </header>
+
+    <div class="orders-grid" id="ordersContainer">
+      <div style="text-align: center; padding: 2rem; color: #9ca3af;">
+        جاري التحميل...
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function loadOrders() {
+      try {
+        const res = await fetch('/api/user/orders');
+        const orders = await res.json();
+
+        const container = document.getElementById('ordersContainer');
+        
+        if (orders.length === 0) {
+          container.innerHTML = `
+            <div style="grid-column: 1/-1;">
+              <div class="empty-state">
+                <div class="empty-icon">📭</div>
+                <div class="empty-text">لم تقم بأي طلبات بعد</div>
+                <a href="/" class="home-btn">تصفح الباقات</a>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = orders.map(order => `
+          <div class="order-card">
+            <div class="order-header">
+              <span class="order-id">رقم الطلب: ${order.check_id}</span>
+              <span class="status-badge status-${order.status}">${order.status}</span>
+            </div>
+            <div class="order-plan">${order.plan_name}</div>
+            <div class="order-details">
+              <div class="detail-row">
+                <span>تاريخ الطلب:</span>
+                <span class="detail-value">${new Date(order.created_at).toLocaleDateString('ar-SA')}</span>
+              </div>
+              <div class="detail-row">
+                <span>الحالة:</span>
+                <span class="detail-value" style="text-transform: capitalize;">${order.status}</span>
+              </div>
+            </div>
+            <div class="order-price">$${order.price.toFixed(2)}</div>
+            ${order.status === 'pending' ? `<a href="/payment/${order.id}" class="action-btn">💳 كمل الدفع</a>` : ''}
+            ${order.status === 'paid' ? `<button class="action-btn" disabled>✅ تم الدفع</button>` : ''}
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error(err);
+        document.getElementById('ordersContainer').innerHTML = '<div style="color: #ff6b6b;">حدث خطأ في تحميل الطلبات</div>';
+      }
+    }
+
+    function logout() {
+      window.location.href = '/logout';
+    }
+
+    window.addEventListener('load', loadOrders);
+  </script>
+</body>
+</html>

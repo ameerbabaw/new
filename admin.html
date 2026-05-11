@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم - سيرف ستور</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0b14;
+      --bg-secondary: #11131f;
+      --bg-card: #161825;
+      --accent: #4f8fff;
+      --accent-light: #6ba3ff;
+      --text-primary: #ffffff;
+      --text-secondary: #9ca3af;
+      --border: rgba(255,255,255,0.06);
+      --gradient: linear-gradient(135deg, #4f8fff 0%, #7c5cfc 100%);
+      --success: #2ecc71;
+      --warning: #f39c12;
+      --danger: #e74c3c;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      direction: rtl;
+    }
+    
+    .dashboard {
+      display: flex;
+      min-height: 100vh;
+    }
+    
+    .sidebar {
+      width: 280px;
+      background: var(--bg-secondary);
+      border-left: 1px solid var(--border);
+      padding: 2rem 1.5rem;
+      position: fixed;
+      height: 100vh;
+      left: 0;
+      overflow-y: auto;
+    }
+    
+    .sidebar h2 {
+      font-size: 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .sidebar h2 span {
+      color: var(--accent);
+    }
+    
+    .nav-item {
+      display: block;
+      padding: 1rem;
+      margin-bottom: 0.5rem;
+      border-radius: 12px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: 0.3s;
+      cursor: pointer;
+    }
+    
+    .nav-item:hover, .nav-item.active {
+      background: rgba(79,143,255,0.1);
+      color: white;
+    }
+    
+    .logout-btn {
+      position: absolute;
+      bottom: 1.5rem;
+      left: 1.5rem;
+      right: 1.5rem;
+      background: var(--danger);
+      color: white;
+      border: none;
+      padding: 0.8rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      transition: 0.3s;
+    }
+    
+    .logout-btn:hover {
+      background: #c0392b;
+    }
+    
+    .main-content {
+      margin-left: 280px;
+      flex: 1;
+      padding: 2rem;
+    }
+    
+    .page {
+      display: none;
+    }
+    
+    .page.active {
+      display: block;
+    }
+    
+    .header-section h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      transition: 0.3s;
+    }
+    
+    .stat-card:hover {
+      border-color: rgba(79,143,255,0.3);
+      transform: translateY(-4px);
+    }
+    
+    .stat-card h3 {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+    }
+    
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    
+    .table-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      overflow-x: auto;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    
+    th {
+      text-align: right;
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    tr:hover {
+      background: rgba(79,143,255,0.05);
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+    
+    .status-pending {
+      background: rgba(243,156,18,0.2);
+      color: #f39c12;
+    }
+    
+    .status-paid {
+      background: rgba(46,204,113,0.2);
+      color: #2ecc71;
+    }
+    
+    .status-delivered {
+      background: rgba(79,143,255,0.2);
+      color: var(--accent);
+    }
+    
+    .action-btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 8px;
+      background: var(--accent);
+      color: white;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-size: 0.85rem;
+      transition: 0.3s;
+      margin: 0 0.3rem;
+    }
+    
+    .action-btn:hover {
+      background: var(--accent-light);
+      transform: scale(1.05);
+    }
+    
+    .form-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-top: 2rem;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 0.8rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg-secondary);
+      color: white;
+      font-family: 'Cairo', sans-serif;
+      font-size: 1rem;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(79,143,255,0.05);
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      max-width: 600px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    
+    .modal-header {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .close-modal {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    
+    .submit-btn {
+      background: var(--gradient);
+      color: white;
+      padding: 0.8rem 2rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 700;
+      transition: 0.3s;
+    }
+    
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(79,143,255,0.3);
+    }
+    
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        border-left: none;
+        border-bottom: 1px solid var(--border);
+      }
+      
+      .main-content {
+        margin-left: 0;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2>⚡ <span>إدارة</span> سيرف</h2>
+      <nav>
+        <a class="nav-item active" onclick="showPage('dashboard')">📊 لوحة المعلومات</a>
+        <a class="nav-item" onclick="showPage('orders')">📦 الطلبات</a>
+        <a class="nav-item" onclick="showPage('servers')">🖥️ الخوادم</a>
+        <a class="nav-item" onclick="showPage('users')">👥 المستخدمون</a>
+      </nav>
+      <button class="logout-btn" onclick="logout()">🚪 تسجيل الخروج</button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Dashboard Page -->
+      <section class="page active" id="dashboard">
+        <div class="header-section">
+          <h1>📊 لوحة المعلومات</h1>
+        </div>
+        
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>إجمالي الطلبات</h3>
+            <div class="stat-value" id="totalOrders">0</div>
+          </div>
+          <div class="stat-card">
+            <h3>الطلبات المدفوعة</h3>
+            <div class="stat-value" id="paidOrders">0</div>
+          </div>
+          <div class="stat-card">
+            <h3>إجمالي الإيرادات</h3>
+            <div class="stat-value">$<span id="totalRevenue">0</span></div>
+          </div>
+          <div class="stat-card">
+            <h3>المستخدمون النشطون</h3>
+            <div class="stat-value" id="activeUsers">0</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Orders Page -->
+      <section class="page" id="orders">
+        <div class="header-section">
+          <h1>📦 إدارة الطلبات</h1>
+        </div>
+        
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>رقم الشيك</th>
+                <th>العميل</th>
+                <th>الباقة</th>
+                <th>السعر</th>
+                <th>الحالة</th>
+                <th>طريقة الدفع</th>
+                <th>الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTable">
+              <tr><td colspan="7" style="text-align: center; padding: 2rem;">جاري التحميل...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Servers Page -->
+      <section class="page" id="servers">
+        <div class="header-section">
+          <h1>🖥️ إدارة الخوادم</h1>
+        </div>
+        
+        <div class="form-section">
+          <h2 style="margin-bottom: 1.5rem;">إضافة خادم لطلب</h2>
+          <div class="form-group">
+            <label>رقم الطلب (ID)</label>
+            <input type="number" id="orderIdInput" placeholder="أدخل رقم الطلب">
+          </div>
+          <div class="form-group">
+            <label>اسم المستخدم</label>
+            <input type="text" id="serverUsername" placeholder="مثال: admin">
+          </div>
+          <div class="form-group">
+            <label>كلمة المرور</label>
+            <input type="password" id="serverPassword" placeholder="كلمة مرور قوية">
+          </div>
+          <div class="form-group">
+            <label>IP الخادم</label>
+            <input type="text" id="serverIP" placeholder="مثال: 192.168.1.1">
+          </div>
+          <div class="form-group">
+            <label>المنفذ (Port)</label>
+            <input type="number" id="serverPort" placeholder="مثال: 3306">
+          </div>
+          <div class="form-group">
+            <label>لوحة التحكم (URL)</label>
+            <input type="text" id="controlPanel" placeholder="مثال: https://panel.example.com">
+          </div>
+          <div class="form-group">
+            <label>كلمة مرور Root</label>
+            <input type="password" id="rootPassword" placeholder="كلمة مرور Root">
+          </div>
+          <button class="submit-btn" onclick="addServer()">✅ إضافة الخادم</button>
+        </div>
+      </section>
+
+      <!-- Users Page -->
+      <section class="page" id="users">
+        <div class="header-section">
+          <h1>👥 المستخدمون</h1>
+        </div>
+        
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>المستخدم</th>
+                <th>البريد الإلكتروني</th>
+                <th>عدد الطلبات</th>
+                <th>تاريخ التسجيل</th>
+              </tr>
+            </thead>
+            <tbody id="usersTable">
+              <tr><td colspan="4" style="text-align: center; padding: 2rem;">جاري التحميل...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal for updating order status -->
+  <div class="modal" id="statusModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span>تحديث حالة الطلب</span>
+        <button class="close-modal" onclick="closeModal()">✕</button>
+      </div>
+      <div class="form-group">
+        <label>الحالة الجديدة</label>
+        <select id="statusSelect">
+          <option value="pending">قيد الانتظار (Pending)</option>
+          <option value="paid">مدفوع (Paid)</option>
+          <option value="delivered">تم التوصيل (Delivered)</option>
+        </select>
+      </div>
+      <button class="submit-btn" onclick="updateStatus()">✅ تحديث</button>
+    </div>
+  </div>
+
+  <script>
+    let currentOrderId = null;
+
+    function showPage(pageName) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(pageName).classList.add('active');
+      
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      event.target.classList.add('active');
+
+      if (pageName === 'orders') loadOrders();
+      if (pageName === 'users') loadUsers();
+      if (pageName === 'dashboard') loadDashboard();
+    }
+
+    async function loadDashboard() {
+      try {
+        const res = await fetch('/api/admin/orders');
+        const orders = await res.json();
+        
+        const totalOrders = orders.length;
+        const paidOrders = orders.filter(o => o.status === 'paid').length;
+        const totalRevenue = orders.filter(o => o.status === 'paid').reduce((sum, o) => sum + o.price, 0);
+
+        document.getElementById('totalOrders').textContent = totalOrders;
+        document.getElementById('paidOrders').textContent = paidOrders;
+        document.getElementById('totalRevenue').textContent = totalRevenue.toFixed(2);
+        document.getElementById('activeUsers').textContent = new Set(orders.map(o => o.buyer_name)).size;
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadOrders() {
+      try {
+        const res = await fetch('/api/admin/orders');
+        const orders = await res.json();
+        
+        const tbody = document.getElementById('ordersTable');
+        tbody.innerHTML = orders.map(order => `
+          <tr>
+            <td><strong>${order.check_id}</strong></td>
+            <td>${order.buyer_name}</td>
+            <td>${order.plan_name}</td>
+            <td>$${order.price.toFixed(2)}</td>
+            <td><span class="status-badge status-${order.status}">${order.status}</span></td>
+            <td>${order.payment_method || 'غير محدد'}</td>
+            <td>
+              <button class="action-btn" onclick="openStatusModal(${order.id})">تعديل</button>
+              <button class="action-btn" style="background: #2ecc71;" onclick="addServerUI(${order.id})">خادم</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function loadUsers() {
+      try {
+        const res = await fetch('/api/admin/orders');
+        const orders = await res.json();
+        
+        const userMap = {};
+        orders.forEach(order => {
+          if (!userMap[order.buyer_name]) {
+            userMap[order.buyer_name] = { name: order.buyer_name, email: order.buyer_email, count: 0 };
+          }
+          userMap[order.buyer_name].count++;
+        });
+
+        const tbody = document.getElementById('usersTable');
+        tbody.innerHTML = Object.values(userMap).map((user, idx) => `
+          <tr>
+            <td>${user.name}</td>
+            <td>${user.email}</td>
+            <td>${user.count}</td>
+            <td>${new Date().toLocaleDateString('ar-SA')}</td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function openStatusModal(orderId) {
+      currentOrderId = orderId;
+      document.getElementById('statusModal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('statusModal').classList.remove('active');
+    }
+
+    async function updateStatus() {
+      const status = document.getElementById('statusSelect').value;
+      
+      try {
+        const res = await fetch(`/api/admin/order/${currentOrderId}/update-status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status })
+        });
+        
+        if (res.ok) {
+          alert('✓ تم تحديث الحالة بنجاح');
+          closeModal();
+          loadOrders();
+        }
+      } catch (err) {
+        alert('✗ حدث خطأ');
+      }
+    }
+
+    function addServerUI(orderId) {
+      document.getElementById('orderIdInput').value = orderId;
+      showPage('servers');
+    }
+
+    async function addServer() {
+      const orderId = parseInt(document.getElementById('orderIdInput').value);
+      const data = {
+        username: document.getElementById('serverUsername').value,
+        password: document.getElementById('serverPassword').value,
+        server_ip: document.getElementById('serverIP').value,
+        port: parseInt(document.getElementById('serverPort').value),
+        control_panel: document.getElementById('controlPanel').value,
+        root_password: document.getElementById('rootPassword').value
+      };
+
+      if (!data.username || !data.password || !data.server_ip) {
+        alert('الرجاء ملء جميع الحقول المطلوبة');
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/admin/order/${orderId}/add-server`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          alert('✓ تم إضافة الخادم بنجاح وتحديث حالة الطلب');
+          document.querySelector('.form-section').reset();
+        }
+      } catch (err) {
+        alert('✗ حدث خطأ');
+      }
+    }
+
+    function logout() {
+      window.location.href = '/logout';
+    }
+
+    // Load dashboard on page load
+    window.addEventListener('load', loadDashboard);
+  </script>
+</body>
+</html>

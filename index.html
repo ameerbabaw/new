@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>سيرف ستور - خوادم ألعاب</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0b14;
+      --bg-secondary: #11131f;
+      --bg-card: #161825;
+      --accent: #4f8fff;
+      --accent-light: #6ba3ff;
+      --text-primary: #ffffff;
+      --text-secondary: #9ca3af;
+      --border: rgba(255,255,255,0.06);
+      --gradient: linear-gradient(135deg, #4f8fff 0%, #7c5cfc 100%);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      direction: rtl;
+      line-height: 1.6;
+    }
+
+    /* ========== HEADER ========== */
+    header {
+      position: sticky; top: 0; z-index: 1000;
+      background: rgba(10, 11, 20, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 5%;
+      height: 70px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo {
+      font-size: 1.5rem; font-weight: 800; color: white;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .logo span { color: var(--accent); }
+    nav { display: flex; gap: 2rem; align-items: center; }
+    nav a {
+      color: var(--text-secondary); text-decoration: none;
+      font-weight: 500; font-size: 0.95rem; transition: 0.3s;
+    }
+    nav a:hover, nav a.active { color: white; }
+    .nav-btn {
+      background: var(--gradient); color: white !important;
+      padding: 0.5rem 1.5rem; border-radius: 30px; font-weight: 600;
+    }
+
+    /* ========== HERO ========== */
+    .hero {
+      padding: 5rem 5% 3rem;
+      text-align: center;
+      background: radial-gradient(ellipse at top center, rgba(79,143,255,0.08) 0%, transparent 60%);
+    }
+    .hero .badge {
+      display: inline-block; background: rgba(79,143,255,0.15); color: var(--accent-light);
+      padding: 0.4rem 1.2rem; border-radius: 30px; font-size: 0.85rem; margin-bottom: 1.5rem;
+    }
+    .hero h1 {
+      font-size: 3rem; font-weight: 800; margin-bottom: 1rem;
+      background: linear-gradient(to left, #ffffff, #a0c4ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero p { color: var(--text-secondary); font-size: 1.15rem; max-width: 600px; margin: 0 auto; }
+
+    /* ========== TABS ========== */
+    .section { padding: 3rem 5%; }
+    .tabs {
+      display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 3rem;
+      flex-wrap: wrap;
+      background: var(--bg-secondary); padding: 0.4rem; border-radius: 40px;
+      max-width: 600px; margin-left: auto; margin-right: auto;
+    }
+    .tab-btn {
+      padding: 0.7rem 1.8rem; border-radius: 30px; border: none;
+      background: transparent; color: var(--text-secondary);
+      font-family: 'Cairo', sans-serif; font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; transition: 0.3s;
+    }
+    .tab-btn.active { background: var(--gradient); color: white; box-shadow: 0 4px 20px rgba(79,143,255,0.3); }
+    .tab-btn:hover:not(.active) { color: white; }
+
+    /* ========== FEATURES BAR ========== */
+    .features-bar {
+      display: flex; justify-content: center; gap: 2.5rem; flex-wrap: wrap;
+      margin-bottom: 3rem; padding: 1.5rem 2rem;
+      background: var(--bg-secondary); border-radius: 16px;
+      border: 1px solid var(--border);
+    }
+    .feature-tag {
+      display: flex; align-items: center; gap: 0.5rem;
+      color: var(--text-secondary); font-size: 0.9rem;
+    }
+    .feature-tag .icon { font-size: 1.2rem; color: var(--accent); }
+
+    /* ========== PLANS GRID ========== */
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      justify-items: center;
+    }
+    .plan-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 2rem 1.8rem;
+      width: 100%; max-width: 340px;
+      transition: 0.35s; position: relative; overflow: hidden;
+    }
+    .plan-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(79,143,255,0.3);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    }
+    .plan-card.popular { border-color: rgba(79,143,255,0.4); }
+    .plan-card .popular-tag {
+      position: absolute; top: 20px; left: -30px;
+      background: var(--gradient); color: white;
+      font-size: 0.75rem; font-weight: 700;
+      padding: 0.3rem 3rem;
+      transform: rotate(-45deg);
+    }
+    .plan-card .plan-icon {
+      width: 50px; height: 50px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; margin-bottom: 1rem;
+    }
+    .icon-minecraft { background: rgba(46,204,113,0.15); }
+    .icon-fivem { background: rgba(230,126,34,0.15); }
+    .icon-redm { background: rgba(231,76,60,0.15); }
+    .icon-general { background: rgba(79,143,255,0.15); }
+
+    .plan-card h3 { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .plan-card .subtitle { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.5rem; }
+    .plan-card .price {
+      font-size: 2.8rem; font-weight: 800; margin-bottom: 0.2rem;
+      background: linear-gradient(to left, #fff, #c0d4ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .plan-card .price small { font-size: 1rem; font-weight: 500; }
+    .plan-card .specs { list-style: none; margin: 1.5rem 0; }
+    .plan-card .specs li {
+      padding: 0.5rem 0; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between;
+      color: var(--text-secondary); font-size: 0.9rem;
+    }
+    .plan-card .specs li span { color: white; font-weight: 600; }
+    .plan-card .buy-btn {
+      width: 100%; padding: 0.85rem; border: none;
+      border-radius: 14px; font-family: 'Cairo', sans-serif;
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+      transition: 0.3s; margin-top: 0.5rem;
+      background: var(--bg-secondary); color: white; border: 1px solid var(--border);
+    }
+    .plan-card .buy-btn:hover {
+      background: var(--gradient); border-color: transparent;
+      box-shadow: 0 8px 25px rgba(79,143,255,0.3);
+    }
+    .plan-card .buy-btn.primary {
+      background: var(--gradient); border: none;
+    }
+    .plan-card .buy-btn.primary:hover {
+      box-shadow: 0 8px 30px rgba(79,143,255,0.4);
+    }
+
+    /* ========== FAQ ========== */
+    .faq-section { max-width: 700px; margin: 3rem auto 0; }
+    .faq-section h2 { text-align: center; font-size: 2rem; margin-bottom: 2rem; }
+    .faq-item {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.2rem 1.5rem; margin-bottom: 0.8rem;
+      cursor: pointer; transition: 0.3s;
+    }
+    .faq-item:hover { border-color: rgba(79,143,255,0.3); }
+    .faq-item .q {
+      display: flex; justify-content: space-between; align-items: center;
+      font-weight: 700; font-size: 1rem;
+    }
+    .faq-item .a {
+      color: var(--text-secondary); margin-top: 0.8rem;
+      display: none; font-size: 0.9rem; line-height: 1.7;
+    }
+    .faq-item.open .a { display: block; }
+    .faq-item .arrow { transition: 0.3s; color: var(--accent); }
+    .faq-item.open .arrow { transform: rotate(180deg); }
+
+    /* ========== MODAL ========== */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.75); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      visibility: hidden; opacity: 0; transition: 0.3s; z-index: 2000;
+    }
+    .modal-overlay.active { visibility: visible; opacity: 1; }
+    .modal {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 24px; padding: 2.5rem;
+      width: 92%; max-width: 440px; text-align: center; position: relative;
+    }
+    .modal h2 { font-size: 1.5rem; margin-bottom: 1.5rem; }
+    .modal input, .modal select {
+      width: 100%; padding: 0.9rem 1rem; margin: 0.5rem 0;
+      border-radius: 14px; border: 1px solid var(--border);
+      background: var(--bg-secondary); color: white;
+      font-family: 'Cairo', sans-serif; font-size: 1rem;
+    }
+    .modal .btn {
+      width: 100%; padding: 0.85rem; border: none;
+      border-radius: 14px; font-family: 'Cairo', sans-serif;
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+      background: var(--gradient); color: white; margin-top: 1.5rem;
+    }
+    .close-btn {
+      background: none; border: none; color: var(--text-secondary);
+      font-size: 1.8rem; position: absolute; top: 16px; left: 22px; cursor: pointer;
+    }
+
+    /* ========== FOOTER ========== */
+    footer {
+      background: var(--bg-secondary); text-align: center;
+      padding: 2.5rem; border-top: 1px solid var(--border); margin-top: 4rem;
+    }
+    footer a { color: var(--accent-light); text-decoration: none; margin: 0 1rem; font-size: 0.9rem; }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2rem; }
+      .features-bar { gap: 1rem; }
+      .tabs { flex-wrap: wrap; }
+      .tab-btn { padding: 0.5rem 1.2rem; font-size: 0.85rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========== HEADER ========== -->
+<header>
+  <div class="logo">⚡ <span>سيرف</span> ستور</div>
+  <nav>
+    <a href="#" class="active">الرئيسية</a>
+    <a href="#plans">الباقات</a>
+    <a href="#faq">الأسئلة</a>
+    <a href="/admin/login" class="nav-btn">لوحة التحكم</a>
+  </nav>
+</header>
+
+<!-- ========== HERO ========== -->
+<section class="hero">
+  <div class="badge">🎮 أكثر من 500 خادم نشط</div>
+  <h1>خوادم ألعاب بمواصفات قوية</h1>
+  <p>نوفر خوادم ماين كرافت، فايف إم، ريد إم، وخوادم عامة بأسعار تنافسية وأداء عالي. توصيل فوري ودعم فني 24/7.</p>
+</section>
+
+<!-- ========== PLANS SECTION ========== -->
+<section class="section" id="plans">
+  <!-- تبويبات التصنيف -->
+  <div class="tabs" id="tabContainer">
+    <button class="tab-btn active" data-filter="all">🌐 الكل</button>
+    <button class="tab-btn" data-filter="minecraft">⛏️ ماين كرافت</button>
+    <button class="tab-btn" data-filter="fivem">🚓 فايف إم</button>
+    <button class="tab-btn" data-filter="redm">🤠 ريد إم</button>
+    <button class="tab-btn" data-filter="general">🖥️ عام</button>
+  </div>
+
+  <!-- شريط المواصفات -->
+  <div class="features-bar">
+    <div class="feature-tag"><span class="icon">⚡</span> Intel Xeon</div>
+    <div class="feature-tag"><span class="icon">💾</span> NVMe SSD</div>
+    <div class="feature-tag"><span class="icon">🛡️</span> حماية DDoS</div>
+    <div class="feature-tag"><span class="icon">📦</span> توصيل فوري</div>
+    <div class="feature-tag"><span class="icon">🔁</span> نسخ احتياطي يومي</div>
+  </div>
+
+  <!-- كروت الباقات -->
+  <div class="plans-grid" id="plansContainer"></div>
+</section>
+
+<!-- ========== FAQ ========== -->
+<section class="section" id="faq">
+  <div class="faq-section">
+    <h2>الأسئلة الشائعة</h2>
+    <div class="faq-item">
+      <div class="q">ما هي أنواع الخوادم التي تقدمونها؟ <span class="arrow">▼</span></div>
+      <div class="a">نقدم خوادم ماين كرافت (جافا وبيدروك)، خوادم فايف إم (FiveM)، خوادم ريد إم (RedM)، وخوادم عامة متعددة الاستخدامات. جميع الخوادم تعمل بتقنية KVM لضمان موارد مخصصة بالكامل.</div>
+    </div>
+    <div class="faq-item">
+      <div class="q">هل يمكنني استخدام كل الرام المخصصة لي؟ <span class="arrow">▼</span></div>
+      <div class="a">نعم! على عكس تقنيات المحاكاة الأخرى، توفر KVM موارد مخصصة لكل خادم، بما في ذلك الرام. يمكنك استخدام كل الرام المخصصة لخادمك دون القلق بشأن المستخدمين الآخرين.</div>
+    </div>
+    <div class="faq-item">
+      <div class="q">هل يمكنني ترقية باقتي لاحقاً؟ <span class="arrow">▼</span></div>
+      <div class="a">بالتأكيد! يمكنك ترقية باقتك في أي وقت. فقط تواصل مع فريق الدعم الفني وسنساعدك في عملية الترقية بسلاسة.</div>
+    </div>
+    <div class="faq-item">
+      <div class="q">ما هي أنظمة التشغيل المتوفرة؟ <span class="arrow">▼</span></div>
+      <div class="a">نوفر مجموعة واسعة من أنظمة التشغيل: Ubuntu، Debian، CentOS، Windows Server، وغيرها. يمكنك اختيار النظام المناسب بعد إتمام عملية الشراء.</div>
+    </div>
+    <div class="faq-item">
+      <div class="q">كيف يتم تفعيل الخادم بعد الشراء؟ <span class="arrow">▼</span></div>
+      <div class="a">بعد إتمام الدفع، يصلك رقم شيك فريد. يمكنك التوجه إلى صفحة التفعيل وإدخال الرقم لاستلام بيانات الخادم فوراً. التوصيل فوري!</div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== MODAL المشتري ========== -->
+<div class="modal-overlay" id="buyerModal">
+  <div class="modal">
+    <button class="close-btn" id="closeBuyerModal">✕</button>
+    <h2>📋 إتمام الشراء</h2>
+    <p id="selectedPlanInfo" style="color:var(--text-secondary);margin-bottom:1rem;"></p>
+    <input type="text" id="buyerName" placeholder="الاسم الكامل" required>
+    <input type="email" id="buyerEmail" placeholder="البريد الإلكتروني" required>
+    <input type="text" id="discordId" placeholder="Discord ID (اختياري)">
+    <button class="btn" id="proceedToPayment">💳 متابعة للدفع</button>
+  </div>
+</div>
+
+<!-- ========== FOOTER ========== -->
+<footer>
+  <p style="color:var(--text-secondary);">© 2025 سيرف ستور. جميع الحقوق محفوظة.</p>
+  <p style="margin-top:0.5rem;">
+    <a href="#">سياسة الخصوصية</a> ·
+    <a href="#">الشروط والأحكام</a> ·
+    <a href="/admin/login">لوحة التحكم</a>
+  </p>
+</footer>
+
+<script>
+  // ========== بيانات الباقات ==========
+  const plansData = [
+    {
+      id: 1, game: 'minecraft', icon: 'icon-minecraft', emoji: '⛏️',
+      name: 'برونزية', subtitle: 'ماين كرافت - اقتصادية',
+      price: 19, popular: false,
+      specs: { 'المعالج': '3 أنوية', 'الرام': '4GB', 'المساحة': '60GB NVMe', 'الحماية': 'DDoS 2.5Tb/s' }
+    },
+    {
+      id: 2, game: 'minecraft', icon: 'icon-minecraft', emoji: '⛏️',
+      name: 'فضية', subtitle: 'ماين كرافت - متوسطة',
+      price: 35, popular: true,
+      specs: { 'المعالج': '5 أنوية', 'الرام': '8GB', 'المساحة': '80GB NVMe', 'الحماية': 'DDoS 2.5Tb/s' }
+    },
+    {
+      id: 3, game: 'minecraft', icon: 'icon-minecraft', emoji: '⛏️',
+      name: 'ذهبية', subtitle: 'ماين كرافت - متقدمة',
+      price: 49, popular: false,
+      specs: { 'المعالج': '6 أنوية', 'الرام': '16GB', 'المساحة': '120GB NVMe', 'الحماية': 'DDoS 5Tb/s' }
+    },
+    {
+      id: 4, game: 'fivem', icon: 'icon-fivem', emoji: '🚓',
+      name: 'برونزية', subtitle: 'فايف إم - 32 لاعب',
+      price: 29, popular: false,
+      specs: { 'المعالج': '3 أنوية', 'الرام': '4GB', 'المساحة': '60GB NVMe', 'اللاعبين': 'حتى 32 لاعب' }
+    },
+    {
+      id: 5, game: 'fivem', icon: 'icon-fivem', emoji: '🚓',
+      name: 'فضية', subtitle: 'فايف إم - 64 لاعب',
+      price: 55, popular: true,
+      specs: { 'المعالج': '5 أنوية', 'الرام': '8GB', 'المساحة': '80GB NVMe', 'اللاعبين': 'حتى 64 لاعب' }
+    },
+    {
+      id: 6, game: 'redm', icon: 'icon-redm', emoji: '🤠',
+      name: 'قياسية', subtitle: 'ريد إم - 32 لاعب',
+      price: 29, popular: false,
+      specs: { 'المعالج': '3 أنوية', 'الرام': '4GB', 'المساحة': '60GB NVMe', 'اللاعبين': 'حتى 32 لاعب' }
+    },
+    {
+      id: 7, game: 'general', icon: 'icon-general', emoji: '🖥️',
+      name: 'اقتصادية', subtitle: 'خادم عام متعدد الاستخدام',
+      price: 19, popular: false,
+      specs: { 'المعالج': '2 أنوية', 'الرام': '2GB', 'المساحة': '40GB NVMe', 'الحماية': 'DDoS أساسية' }
+    },
+    {
+      id: 8, game: 'general', icon: 'icon-general', emoji: '🖥️',
+      name: 'متوسطة', subtitle: 'خادم عام للأعمال',
+      price: 39, popular: true,
+      specs: { 'المعالج': '4 أنوية', 'الرام': '8GB', 'المساحة': '100GB NVMe', 'الحماية': 'DDoS 2.5Tb/s' }
+    },
+  ];
+
+  const plansContainer = document.getElementById('plansContainer');
+  const tabBtns = document.querySelectorAll('.tab-btn');
+
+  // ========== توليد البطاقات ==========
+  function renderPlans(gameFilter = 'all') {
+    plansContainer.innerHTML = '';
+    const filtered = gameFilter === 'all' ? plansData : plansData.filter(p => p.game === gameFilter);
+    filtered.forEach(plan => {
+      const card = document.createElement('div');
+      card.className = 'plan-card' + (plan.popular ? ' popular' : '');
+      card.innerHTML = `
+        ${plan.popular ? '<div class="popular-tag">الأكثر مبيعاً</div>' : ''}
+        <div class="plan-icon ${plan.icon}">${plan.emoji}</div>
+        <h3>${plan.name}</h3>
+        <p class="subtitle">${plan.subtitle}</p>
+        <div class="price">${plan.price}<small> ريال/شهر</small></div>
+        <ul class="specs">
+          ${Object.entries(plan.specs).map(([k,v]) => `<li>${k} <span>${v}</span></li>`).join('')}
+        </ul>
+        <button class="buy-btn${plan.popular ? ' primary' : ''}" data-id="${plan.id}">🛒 اشتري الآن</button>
+      `;
+      plansContainer.appendChild(card);
+    });
+
+    // ربط أزرار الشراء
+    document.querySelectorAll('.buy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const planId = parseInt(btn.dataset.id);
+        openBuyerModal(planId);
+      });
+    });
+  }
+
+  // ========== فلترة التبويبات ==========
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderPlans(btn.dataset.filter);
+    });
+  });
+
+  renderPlans();
+
+  // ========== مودال المشتري ==========
+  const buyerModal = document.getElementById('buyerModal');
+  const closeBuyerModal = document.getElementById('closeBuyerModal');
+  const selectedPlanInfo = document.getElementById('selectedPlanInfo');
+  let currentPlanId = null;
+
+  function openBuyerModal(planId) {
+    const plan = plansData.find(p => p.id === planId);
+    if (!plan) return;
+    currentPlanId = planId;
+    selectedPlanInfo.innerHTML = `<strong>${plan.subtitle}</strong> — ${plan.price} ريال/شهر`;
+    buyerModal.classList.add('active');
+  }
+
+  closeBuyerModal.addEventListener('click', () => buyerModal.classList.remove('active'));
+  window.addEventListener('click', (e) => { if (e.target === buyerModal) buyerModal.classList.remove('active'); });
+
+  // ========== متابعة للدفع ==========
+  document.getElementById('proceedToPayment').addEventListener('click', async () => {
+    const name = document.getElementById('buyerName').value.trim();
+    const email = document.getElementById('buyerEmail').value.trim();
+    const discord = document.getElementById('discordId').value.trim();
+    if (!name || !email) { alert('الرجاء ملء الاسم والبريد الإلكتروني'); return; }
+
+    const plan = plansData.find(p => p.id === currentPlanId);
+    const orderData = {
+      plan_name: plan.subtitle,
+      game_type: plan.game,
+      plan_price: plan.price,
+      buyer_name: name,
+      buyer_email: email,
+      discord_id: discord
+    };
+
+    try {
+      const res = await fetch('/api/create_order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+      });
+      const data = await res.json();
+      if (data.success) {
+        buyerModal.classList.remove('active');
+        window.location.href = `/payment/${data.order_id}`;
+      } else {
+        alert('حدث خطأ، حاول لاحقاً');
+      }
+    } catch (err) {
+      alert('تعذر الاتصال بالخادم');
+    }
+  });
+
+  // ========== FAQ accordion ==========
+  document.querySelectorAll('.faq-item').forEach(item => {
+    item.addEventListener('click', () => {
+      item.classList.toggle('open');
+    });
+  });
+</script>
+</body>
+</html>

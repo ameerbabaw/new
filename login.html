@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الدخول - سيرف ستور</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0b14;
+      --card: #161825;
+      --accent: #4f8fff;
+      --gradient: linear-gradient(135deg, #4f8fff, #7c5cfc);
+      --border: rgba(255,255,255,0.06);
+      --error: #ff6b6b;
+      --success: #2ecc71;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: var(--bg);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+    .container {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .header h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #4f8fff, #7c5cfc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .header p {
+      color: #9ca3af;
+      font-size: 0.9rem;
+    }
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #e5e7eb;
+    }
+    input {
+      width: 100%;
+      padding: 0.9rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: white;
+      font-family: 'Cairo', sans-serif;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(79,143,255,0.05);
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 1rem;
+      border: none;
+      border-radius: 12px;
+      background: var(--gradient);
+      color: white;
+      font-family: 'Cairo', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.3s;
+      margin-top: 1rem;
+    }
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(79,143,255,0.3);
+    }
+    .submit-btn:active {
+      transform: translateY(0);
+    }
+    .message {
+      padding: 1rem;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      display: none;
+      text-align: center;
+    }
+    .message.error {
+      background: rgba(255,107,107,0.1);
+      color: #ff6b6b;
+      border: 1px solid rgba(255,107,107,0.2);
+      display: block;
+    }
+    .message.success {
+      background: rgba(46,204,113,0.1);
+      color: #2ecc71;
+      border: 1px solid rgba(46,204,113,0.2);
+      display: block;
+    }
+    .toggle-form {
+      text-align: center;
+      margin-top: 1.5rem;
+      color: #9ca3af;
+      font-size: 0.9rem;
+    }
+    .toggle-form a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .toggle-form a:hover {
+      text-decoration: underline;
+    }
+    .loading {
+      display: none;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .spinner {
+      border: 2px solid rgba(79,143,255,0.2);
+      border-top: 2px solid var(--accent);
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>⚡ سيرف ستور</h1>
+      <p id="formTitle">تسجيل الدخول</p>
+    </div>
+
+    <div class="message" id="message"></div>
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Login Form -->
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="username">اسم المستخدم</label>
+        <input type="text" id="username" name="username" required placeholder="أدخل اسم المستخدم">
+      </div>
+      <div class="form-group">
+        <label for="password">كلمة المرور</label>
+        <input type="password" id="password" name="password" required placeholder="أدخل كلمة المرور">
+      </div>
+      <button type="submit" class="submit-btn">دخول</button>
+    </form>
+
+    <!-- Register Form -->
+    <form id="registerForm" style="display: none;">
+      <div class="form-group">
+        <label for="regUsername">اسم المستخدم</label>
+        <input type="text" id="regUsername" name="username" required placeholder="اختر اسم المستخدم">
+      </div>
+      <div class="form-group">
+        <label for="regEmail">البريد الإلكتروني</label>
+        <input type="email" id="regEmail" name="email" required placeholder="أدخل بريدك الإلكتروني">
+      </div>
+      <div class="form-group">
+        <label for="regPassword">كلمة المرور</label>
+        <input type="password" id="regPassword" name="password" required placeholder="اختر كلمة مرور قوية">
+      </div>
+      <div class="form-group">
+        <label for="regConfirm">تأكيد كلمة المرور</label>
+        <input type="password" id="regConfirm" name="confirm_password" required placeholder="أكد كلمة المرور">
+      </div>
+      <button type="submit" class="submit-btn">تسجيل حساب جديد</button>
+    </form>
+
+    <div class="toggle-form">
+      <span id="toggleText">ليس لديك حساب؟ <a onclick="toggleForm()">سجل الآن</a></span>
+    </div>
+  </div>
+
+  <script>
+    let isLoginForm = true;
+
+    function toggleForm() {
+      isLoginForm = !isLoginForm;
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+      const formTitle = document.getElementById('formTitle');
+      const toggleText = document.getElementById('toggleText');
+
+      if (isLoginForm) {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+        formTitle.textContent = 'تسجيل الدخول';
+        toggleText.innerHTML = 'ليس لديك حساب؟ <a onclick="toggleForm()">سجل الآن</a>';
+      } else {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+        formTitle.textContent = 'إنشاء حساب جديد';
+        toggleText.innerHTML = 'هل لديك حساب بالفعل؟ <a onclick="toggleForm()">دخول</a>';
+      }
+      clearMessage();
+    }
+
+    function showMessage(text, type) {
+      const msg = document.getElementById('message');
+      msg.textContent = text;
+      msg.className = 'message ' + type;
+    }
+
+    function clearMessage() {
+      document.getElementById('message').className = 'message';
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const loading = document.getElementById('loading');
+      loading.style.display = 'block';
+
+      const formData = {
+        username: document.getElementById('username').value,
+        password: document.getElementById('password').value
+      };
+
+      try {
+        const res = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          showMessage('✓ تم تسجيل الدخول بنجاح!', 'success');
+          setTimeout(() => window.location.href = data.redirect, 1000);
+        } else {
+          showMessage('✗ ' + data.message, 'error');
+        }
+      } catch (err) {
+        showMessage('✗ حدث خطأ في الاتصال', 'error');
+      } finally {
+        loading.style.display = 'none';
+      }
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const loading = document.getElementById('loading');
+      loading.style.display = 'block';
+
+      const formData = {
+        username: document.getElementById('regUsername').value,
+        email: document.getElementById('regEmail').value,
+        password: document.getElementById('regPassword').value,
+        confirm_password: document.getElementById('regConfirm').value
+      };
+
+      try {
+        const res = await fetch('/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          showMessage('✓ ' + data.message, 'success');
+          setTimeout(() => toggleForm(), 1500);
+          document.getElementById('registerForm').reset();
+        } else {
+          showMessage('✗ ' + data.message, 'error');
+        }
+      } catch (err) {
+        showMessage('✗ حدث خطأ في الاتصال', 'error');
+      } finally {
+        loading.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
